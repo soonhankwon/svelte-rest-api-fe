@@ -2,8 +2,81 @@ import { writable, get, derived } from "svelte/store";
 import { getApi, putApi, delApi, postApi } from "../service/api.js";
 import { router } from 'tinro'
 
-function setCurrentArticlesPage(){}
-function setArticles(){}
+function setCurrentArticlesPage(){
+    const { subscribe, update, set } = writable(1)
+
+    const resetPage = () => set(1)
+    const increPage = () => {
+        update(data => data = data + 1)
+        articles.fetchArticles()
+    }
+
+    return {
+        subscribe,
+        resetPage,
+        increPage,
+    }
+}
+
+function setArticles(){
+    let initValues = {
+        articleList: [],
+        totalPageCount: 0,
+        menuPopup: '',
+        editMode: ''
+    }
+
+    const { subscribe, update, set } = writable({...initValues})
+
+    const fetchArticles = async () => {
+        const currentPage = get(currentArticlesPage)
+        let path = `/articles?pageNumber=${currentPage}`
+
+        try {
+            const access_token = get(auth).Authorization
+            console.log(access_token);
+
+            const options = {
+                path: path,
+                access_token: access_token,
+            }
+
+            const getDatas = await getApi(options)
+
+            const newData = {
+                articleList: getDatas.articleList,
+                totalPageCount: getDatas.totalPageCount,
+            }
+
+            update(datas => {
+                
+                if(currentPage === 1) {
+                    datas.articleList = newData.articleList,
+                    datas.totalPageCount = newData.totalPageCount
+                }
+                else {
+                    const newArticles = [...datas.articleList, ...newData.articleList]
+                    datas.articleList = newArticles
+                    datas.totalPageCount = newData.totalPageCount
+                }
+                return datas
+            })
+        } catch(error) {
+            throw error
+        }
+    }
+
+    const resetArticles = () => {
+        set({...initValues})
+        currentArticlesPage.resetPage();
+    }
+
+    return {
+        subscribe,
+        fetchArticles,
+        resetArticles,
+    }
+}
 function setLoadingArticle(){}
 function setArticleContent(){}
 function setComments(){}

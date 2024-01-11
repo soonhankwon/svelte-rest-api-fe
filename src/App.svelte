@@ -3,7 +3,7 @@
   import { auth, isRefresh } from "./stores";
   import Router from "./router.svelte";
 
-  const refresh_time = 1000 * 60 * 1;
+  const refresh_time = 1000 * 60 * 14;
 
   onMount(async () => {
     const onRefresh = setInterval(async () => {

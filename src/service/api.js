@@ -8,7 +8,7 @@ const send = async ({method='', path='', data={}, access_token=''}) => {
         "Access-Control-Allow-Origin": commonUrl,
         "Access-Control-Allow-Credentials": true,
         "content-type": "application/json;charset=UTF-8",
-        "accept": "applicatoin/json",
+        "accept": "application/json",
         "SameSite": "None",
         "Authorization": access_token,
     }
