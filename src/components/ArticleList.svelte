@@ -1,6 +1,11 @@
 <script>
   import { onMount } from "svelte";
-  import { articles, currentArticlesPage } from "../stores";
+  import {
+    articles,
+    currentArticlesPage,
+    loadingArticle,
+    articlePageLock,
+  } from "../stores";
   import Article from "./Article.svelte";
   import ArticleLoading from "./ArticleLoading.svelte";
 
@@ -35,8 +40,19 @@
       return scrollTop > triggerHeight;
     };
 
+    // 현재 페이지가 전체 페이지보다 작거나 같으면 true 리턴
+    const countCheck = () => {
+      const check = $articles.totalPageCount <= $currentArticlesPage;
+      return check;
+    };
+
+    // countCheck를 이용해 현재 페이지가 페이지 마지막일 경우 articlePageLock을 true 리턴 더이상 페이지 증가하지 않도록 락
+    if (countCheck()) {
+      articlePageLock.set(true);
+    }
+
     const scrollTrigger = () => {
-      return triggerComputed();
+      return triggerComputed() && !countCheck() && !$articlePageLock;
     };
 
     if (scrollTrigger()) {
@@ -54,5 +70,9 @@
       </li>
     {/each}
   </ul>
+
+  {#if $loadingArticle}
+    <ArticleLoading />
+  {/if}
 </div>
 <!-- slog-list-wrap end-->

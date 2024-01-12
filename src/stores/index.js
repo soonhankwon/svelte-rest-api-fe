@@ -29,6 +29,8 @@ function setArticles(){
     const { subscribe, update, set } = writable({...initValues})
 
     const fetchArticles = async () => {
+
+        loadingArticle.turnOnLoading()
         const currentPage = get(currentArticlesPage)
         let path = `/articles?pageNumber=${currentPage}`
 
@@ -61,7 +63,10 @@ function setArticles(){
                 }
                 return datas
             })
+
+            loadingArticle.turnOffLoading()
         } catch(error) {
+            loadingArticle.turnOffLoading()
             throw error
         }
     }
@@ -69,6 +74,8 @@ function setArticles(){
     const resetArticles = () => {
         set({...initValues})
         currentArticlesPage.resetPage();
+        // 페이지 초기화시 잠금 해제
+        articlePageLock.set(false)
     }
 
     return {
@@ -77,7 +84,26 @@ function setArticles(){
         resetArticles,
     }
 }
-function setLoadingArticle(){}
+
+function setLoadingArticle(){
+    const {subscribe, set} = writable(false)
+
+    const turnOnLoading = () => {
+        set(true)
+        articlePageLock.set(true)
+    }
+
+    const turnOffLoading = () => {
+        set(false)
+        articlePageLock.set(false)
+    }
+
+    return {
+        subscribe,
+        turnOnLoading,
+        turnOffLoading,
+    }
+}
 function setArticleContent(){}
 function setComments(){}
 
@@ -179,6 +205,7 @@ function setIsLogin(){
 
 export const currentArticlesPage = setCurrentArticlesPage()
 export const articles = setArticles()
+export const articlePageLock = writable(false)
 export const loadingArticle = setLoadingArticle()
 export const articleContent = setArticleContent()
 export const comments = setComments()
