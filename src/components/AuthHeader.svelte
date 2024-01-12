@@ -12,12 +12,12 @@
     <a
       href="/login"
       class=" main-menu mr-6"
-      class:main-menu-selected={url === "login"}>로그인</a
+      class:main-menu-selected={url === "/login"}>로그인</a
     >
     <a
       href="/register"
       class="main-menu mr-6"
-      class:main-menu-selected={url === "register"}>회원가입</a
+      class:main-menu-selected={url === "/register"}>회원가입</a
     >
   </nav>
   <a href="/" class="text-white">

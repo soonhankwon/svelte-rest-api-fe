@@ -78,10 +78,129 @@ function setArticles(){
         articlePageLock.set(false)
     }
 
+    const addArticle = async (content) => {
+        const access_token = get(auth).Authorization
+
+        try {
+            const options = {
+                path: "/articles",
+                data: {
+                    content: content,
+                },
+                access_token: access_token,
+            }
+
+            const newArticle = await postApi(options)
+            
+            // 변경된 데이터만 업데이트
+            update(datas => {
+                datas.articleList = [newArticle, ...datas.articleList]
+                return datas
+            })
+            // 만약 무조건 새로운 글이 나타아야 한다면, articles.resetArticles()
+            return
+        } catch(error) {
+            throw error
+        }
+    }
+
+    const openMenuPopup = (id) => {
+        update(datas => {
+            datas.menuPopup = id
+            return datas
+        })
+    }
+
+    const closeMenuPopup = () => {
+        update(datas => {
+            datas.menuPopup = ""
+            return datas
+        })
+    }
+
+    const openEditModeArticle = (id) => {
+        articles.closeMenuPopup()
+
+        update(datas => {
+            datas.editMode = id
+            return datas
+        })
+    }
+
+    const closeEditModeArticle = () => {
+        update(datas => {
+            datas.editMode = ""
+            return datas
+        })
+    }
+
+    const updateArticle = async (article) => {
+        const access_token = get(auth).Authorization
+
+        try {
+            const updateData = {
+                articleId: article.id,
+                content: article.content,
+            }
+
+            const options = {
+                path: "/articles",
+                data: updateData,
+                access_token: access_token,
+            }
+
+            const updateArticle = await putApi(options)
+
+            update(datas => {
+                const newArticleList = datas.articleList.map(article => {
+                    if(article.id === updateArticle.id) {
+                        article = updateArticle
+                    }
+                    return article
+                })
+                datas.articleList = newArticleList
+                return datas
+            })
+
+            articles.closeEditModeArticle()
+            alert("수정이 완료되었습니다.")
+        } catch(error) {
+            alert("수정중에 오류가 발생했습니다. 다시 시도해 주세요.")
+        }
+    }
+
+    const deleteArticle = async (id) => {
+        const access_token = get(auth).Authorization
+
+        try {
+            const options = {
+                path: `/articles/${id}`,
+                access_token: access_token
+            }
+
+            await delApi(options)
+
+            update(datas => {
+                const newArticleList = datas.articleList.filter(article => article.id !== id)
+                datas.articleList = newArticleList
+                return datas 
+            })
+        } catch(error) {
+            alert("삭제 중 오류가 발생했습니다.")
+        }
+    }
+
     return {
         subscribe,
+        addArticle,
         fetchArticles,
         resetArticles,
+        openMenuPopup,
+        closeMenuPopup,
+        openEditModeArticle,
+        closeEditModeArticle,
+        updateArticle,
+        deleteArticle,
     }
 }
 
@@ -155,7 +274,7 @@ function setAuth(){
     const logout = async () => {
         try {
             const options = {
-                path: 'auth/logout',
+                path: '/auth/logout',
             }
 
             await delApi(options);

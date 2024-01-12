@@ -42,7 +42,7 @@ const postApi = ({path='', data={}, access_token=''} = {}) => {
 }
 
 const delApi = ({path='', data={}, access_token=''} = {}) => {
-    return send({method: 'POST', path, data, access_token})
+    return send({method: 'DELETE', path, data, access_token})
 }
 
 export {
