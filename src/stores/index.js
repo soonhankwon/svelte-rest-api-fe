@@ -190,6 +190,32 @@ function setArticles(){
         }
     }
 
+    const increArticleCommentCount = (articleId) => {
+        update(datas => {
+            const newArticleList = datas.articleList.map(article => {
+                if(article.id === articleId) {
+                    article.commentCount = article.commentCount + 1
+                }
+                return article
+            })
+            datas.articleList = newArticleList
+            return datas
+        })
+    }
+
+    const decreArticleCommentCount = (articleId) => {
+        update(datas => {
+            const newArticleList = datas.articleList.map(article => {
+                if(article.id === articleId) {
+                    article.commentContent = article.commentCount - 1
+                }
+                return article
+            })
+            datas.articleList = newArticleList
+            return datas
+        })
+    }
+
     return {
         subscribe,
         addArticle,
@@ -201,6 +227,8 @@ function setArticles(){
         closeEditModeArticle,
         updateArticle,
         deleteArticle,
+        increArticleCommentCount,
+        decreArticleCommentCount,
     }
 }
 
@@ -223,8 +251,107 @@ function setLoadingArticle(){
         turnOffLoading,
     }
 }
-function setArticleContent(){}
-function setComments(){}
+
+function setArticleContent(){
+    let initValues = {
+        id: "",
+        userId: "",
+        userEmail: "",
+        content: "",
+        createdAt: "",
+        commentCount: "",
+        likeCount: "",
+        likeUsers: [],
+    }
+
+    const { subscribe, set } = writable({...initValues})
+
+    const getArticle = async (id) => {
+        try {
+            const options = {
+                path: `/articles/${id}`
+            }
+            const getData = await getApi(options)
+            set(getData)
+        }
+        catch(error) {
+            alert("오류가 발생했습니다. 다시 시도해 주세요.")
+        }
+    }
+    
+    return {
+        subscribe,
+        getArticle,
+    }
+}
+
+function setComments(){
+    const { subscribe, update, set } = writable([])
+
+    const fetchComments = async (id) => {
+        try {
+            const options = {
+                path: `/comments/${id}`
+            }
+
+            const getDatas = await getApi(options)
+            set(getDatas.comments)
+        }
+        catch(error) {
+            alert("오류가 발생했습니다. 다시 시도해 주세요.")
+        }
+    }
+
+    const addComment = async (articleId, commentContent) => {
+        const access_token = get(auth).Authorization
+        
+        try {
+            const options = {
+                path: "/comments",
+                data: {
+                    articleId: articleId,
+                    content: commentContent,
+                },
+                access_token: access_token,
+            }
+            const newData = await postApi(options)
+            update(datas => [...datas, newData])
+            articles.increArticleCommentCount(articleId)
+        }
+        catch(error) {
+            alert("오류가 발생했습니다. 다시 시도해 주세요.")
+        }
+    }
+
+    const deleteComment = async (commentId, articleId) => {
+        const access_token = get(auth).Authorization
+
+        try {
+            const options = {
+                path: "/comments",
+                data: {
+                    commentId: commentId,
+                    articleId: articleId,
+                },
+                access_token: access_token,
+            }
+
+            await delApi(options)
+            update(datas => datas.filter(comment => comment.id !== commentId))
+            articles.decreArticleCommentCount(articleId)
+        }
+        catch(error) {
+            alert("삭제 중 오류가 발생했습니다. 다시 시도해 주세요.")
+        }
+    }
+
+    return {
+        subscribe,
+        fetchComments,
+        addComment,
+        deleteComment,
+    }
+}
 
 function setAuth(){
     let initValues = {
