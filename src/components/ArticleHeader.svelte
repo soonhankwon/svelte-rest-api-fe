@@ -7,7 +7,8 @@
   const onLogout = () => auth.logout();
 
   const onChangeMode = (mode) => {
-    if ($articlesMode !== mode) articlesMode.changeMode(mode);
+    // if ($articlesMode !== mode) articlesMode.changeMode(mode);
+    if ($articlesMode !== mode) router.goto(`/articles/${mode}`);
   };
 </script>
 
