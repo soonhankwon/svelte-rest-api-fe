@@ -70,13 +70,15 @@ function setArticles(){
 
             update(datas => {
                 
-                if(currentPage === 1) {
+                if(currentPage === 0) {
                     datas.articleList = newData.articleList,
                     datas.totalPageCount = newData.totalPageCount
                 }
                 else {
                     const newArticles = [...datas.articleList, ...newData.articleList]
-                    datas.articleList = newArticles
+                    // datas.articleList = newArticles
+                    const uniqueArr = newArticles.filter((arr, index, callback) => index === callback.findIndex(t => t.id === arr.id))
+                    datas.articleList = uniqueArr
                     datas.totalPageCount = newData.totalPageCount
                 }
                 return datas

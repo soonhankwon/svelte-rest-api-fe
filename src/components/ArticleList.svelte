@@ -8,11 +8,9 @@
     articlesMode,
   } from "../stores";
   import Article from "./Article.svelte";
-  import ArticleLoading from "./ArticleLoading.svelte";
   import { router } from "tinro";
+  import InfiniteScroll from "./InfiniteScroll.svelte";
 
-  let component;
-  let element;
   let currentMode = $router.path.split("/")[2];
 
   onMount(() => {
@@ -20,53 +18,10 @@
     // articles.fetchArticles();
     articlesMode.changeMode(currentMode);
   });
-
-  $: {
-    if (component) {
-      element = component.parentNode;
-      element.addEventListener("scroll", onScroll);
-      element.addEventListener("resize", onScroll);
-    }
-  }
-
-  const onScroll = (e) => {
-    // 브라우저 스크롤 높이
-    const scrollHeight = e.target.scrollHeight;
-    // 화면 높이
-    const clientHeight = e.target.clientHeight;
-    // 현재 스크롤 위치
-    const scrollTop = e.target.scrollTop;
-    // 실제 스크롤 사이즈
-    const realHeight = scrollHeight - clientHeight;
-    const triggerHeight = realHeight * 0.7;
-
-    const triggerComputed = () => {
-      return scrollTop > triggerHeight;
-    };
-
-    // 현재 페이지가 전체 페이지보다 작거나 같으면 true 리턴
-    const countCheck = () => {
-      const check = $articles.totalPageCount <= $currentArticlesPage;
-      return check;
-    };
-
-    // countCheck를 이용해 현재 페이지가 페이지 마지막일 경우 articlePageLock을 true 리턴 더이상 페이지 증가하지 않도록 락
-    if (countCheck()) {
-      articlePageLock.set(true);
-    }
-
-    const scrollTrigger = () => {
-      return triggerComputed() && !countCheck() && !$articlePageLock;
-    };
-
-    if (scrollTrigger()) {
-      currentArticlesPage.increPage();
-    }
-  };
 </script>
 
 <!-- slog-list-wrap start-->
-<div class="slog-list-wrap" bind:this={component}>
+<div class="slog-list-wrap infiniteTarget">
   <ul class="slog-ul">
     {#each $articles.articleList as article, index}
       <li class="mb-5">
@@ -75,8 +30,14 @@
     {/each}
   </ul>
 
-  {#if $loadingArticle}
-    <ArticleLoading />
-  {/if}
+  <InfiniteScroll
+    loading={$loadingArticle}
+    pageLock={$articlePageLock}
+    totalPageCount={$articles.totalPageCount}
+    currentPage={$currentArticlesPage}
+    domTarget={".infiniteTarget"}
+    on:onPageLock={() => articlePageLock.set(true)}
+    on:increPage={() => currentArticlesPage.increPage()}
+  />
 </div>
 <!-- slog-list-wrap end-->
