@@ -3,6 +3,7 @@
   import { articles, auth, isLogin } from "../stores";
   import ArticleEditForm from "./ArticleEditForm.svelte";
   import { router } from "tinro";
+  import dateView from "../utils/date";
 
   let isViewMenu = false;
 
@@ -57,7 +58,7 @@
     <div class="content-box-header">
       <div class="content-box-header-inner-left">
         <p class="p-user">{article.userEmail}</p>
-        <p class="p-date">{article.createdAt}</p>
+        <p class="p-date">{dateView(article.createdAt)}</p>
       </div>
       <div class="content-box-header-inner-right">
         {#if article.userId === $auth.id}
