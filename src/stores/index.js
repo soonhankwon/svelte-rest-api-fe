@@ -1,11 +1,12 @@
 import { writable, get, derived } from "svelte/store";
 import { getApi, putApi, delApi, postApi } from "../service/api.js";
 import { router } from 'tinro'
+import { ALL, LIKE, MY } from "../utils/constant.js";
 
 function setCurrentArticlesPage(){
-    const { subscribe, update, set } = writable(1)
+    const { subscribe, update, set } = writable(0)
 
-    const resetPage = () => set(1)
+    const resetPage = () => set(0)
     const increPage = () => {
         update(data => data = data + 1)
         articles.fetchArticles()
@@ -32,7 +33,24 @@ function setArticles(){
 
         loadingArticle.turnOnLoading()
         const currentPage = get(currentArticlesPage)
-        let path = `/articles?pageNumber=${currentPage}`
+        // let path = `/articles?pageNumber=${currentPage}`
+        let path = ""
+        const mode = get(articlesMode)
+
+        switch(mode) {
+            case ALL:
+                path=`/articles?pageNumber=${currentPage}`
+                break
+            case LIKE:
+                path=`/likes?pageNumber=${currentPage}`
+                break
+            case MY:
+                path=`/articles?pageNumber=${currentPage}&mode=${mode}`
+                break
+            default:
+                path=`/articles/${currentPage}`
+                break
+        }
 
         try {
             const access_token = get(auth).Authorization
@@ -466,7 +484,8 @@ function setAuth(){
             await delApi(options);
             set({...initValues})
             isRefresh.set(false)
-            router.goto('/')
+            // router.goto('/')
+            articlesMode.changeMode(ALL)
         }
         catch(error) {
             alert('오류가 발생했습니다. 다시 시도해 주세요.')
@@ -501,7 +520,20 @@ function setAuth(){
     }
 }
 
-function setArticlesMode(){}
+function setArticlesMode(){
+    const { subscribe, update, set } = writable(ALL)
+    
+    const changeMode = async (mode) => {
+        set(mode)
+        articles.resetArticles()
+        await articles.fetchArticles()
+    }
+
+    return {
+        subscribe,
+        changeMode,
+    }
+}
 
 function setIsLogin(){
     const checkLogin = derived(auth, $auth => $auth.Authorization ? true : false)
